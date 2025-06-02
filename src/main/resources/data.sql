@@ -1,2 +1,2 @@
-INSERT INTO Department (Id, Name, ReadOnly, Mandatory)
-VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11','Organisation',TRUE,TRUE);
+INSERT INTO Department (NAME, READ_ONLY, MANDATORY)
+VALUES ('Organisation',TRUE,TRUE);

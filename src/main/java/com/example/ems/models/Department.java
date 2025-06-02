@@ -9,23 +9,24 @@ import java.util.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "Department")
+@Table(name = "DEPARTMENT")
 @ToString(exclude = "employees")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Department {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DEPARTMENT_SEQ")
+    @SequenceGenerator(name = "DEPARTMENT_SEQ", sequenceName = "DEPARTMENT_SEQ", allocationSize = 1)
     @EqualsAndHashCode.Include
-    private UUID id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "readonly")
+    @Column(name = "READ_ONLY")
     private boolean readOnly = false;
 
-    @Column(name = "mandatory")
+    @Column(name = "MANDATORY")
     private boolean mandatory = false;
 
     @ManyToMany(mappedBy = "departments")

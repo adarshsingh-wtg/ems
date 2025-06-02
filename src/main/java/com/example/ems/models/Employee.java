@@ -5,29 +5,29 @@ import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "Employee")
+@Table(name = "EMPLOYEE")
 @ToString(exclude = "departments")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EMPLOYEE_SEQ")
+    @SequenceGenerator(name = "EMPLOYEE_SEQ", sequenceName = "EMPLOYEE_SEQ", allocationSize = 1)
     @EqualsAndHashCode.Include
-    private UUID id;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String name;
 
     @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
-            name = "MAPEMPLOYEEDEPARTMENT",
-            joinColumns = @JoinColumn(name = "IDEMPLOYEE"),
-            inverseJoinColumns = @JoinColumn(name = "IDDEPARTMENT")
+            name = "MAP_EMPLOYEE_DEPARTMENT",
+            joinColumns = @JoinColumn(name = "ID_EMPLOYEE"),
+            inverseJoinColumns = @JoinColumn(name = "ID_DEPARTMENT")
     )
     private Set<Department> departments = new HashSet<>();
 }

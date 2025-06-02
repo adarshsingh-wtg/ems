@@ -1,18 +1,15 @@
 package com.example.ems.controllers;
 
-import com.example.ems.dtos.DepartmentDTO;
 import com.example.ems.models.Department;
 import com.example.ems.services.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -25,42 +22,27 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createDepartment(@RequestBody Department department) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.createDepartment(department));
-        }
-        catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.createDepartment(department));
     }
 
     @GetMapping
-    public List<DepartmentDTO> getAllDepartments() {
+    public List<Department> getAllDepartments() {
         return departmentService.getAllDepartments();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartment(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(departmentService.getDepartmentById(id));
-        }
-        catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Department> getDepartment(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(departmentService.getDepartmentById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable UUID id, @RequestBody Department department) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(departmentService.updateDepartment(id, department));
-        }
-        catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
+        return ResponseEntity.status(HttpStatus.OK).body(departmentService.updateDepartment(id, department));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDepartment(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
     }
