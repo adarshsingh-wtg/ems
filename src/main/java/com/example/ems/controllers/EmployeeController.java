@@ -31,7 +31,7 @@ public class EmployeeController {
 
     @PutMapping
     public ResponseEntity<Employee> updateEmployee(@RequestBody Employee employee) {
-        Employee updatedEmployee = employeeService.updateEmployee(employee);
+        Employee updatedEmployee = employeeService.updateEmployeeDepartment(employee);
         return ResponseEntity.ok(updatedEmployee);
     }
     @DeleteMapping("/{id}")

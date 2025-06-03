@@ -39,48 +39,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Employee updateEmployee(Employee updatedEmployee) {
+    public Employee updateEmployeeDepartment(Employee updatedEmployee) {
         Employee employee = getEmployeeById(updatedEmployee.getId());
         employee.setName(updatedEmployee.getName());
 
-        if(updatedEmployee.getDepartments() != null) {
-            Set<Long> currentDepartmentsIds = employee.getDepartments()
-                    .stream()
-                    .map(Department::getId)
-                    .collect(Collectors.toSet());
-
-            Set<Long> newDepartmentIds = updatedEmployee.getDepartments()
-                    .stream()
-                    .map(Department::getId)
-                    .collect(Collectors.toSet());
-
-            Set<Long> departmentsToAdd = newDepartmentIds.stream()
-                    .filter(departmentId -> !currentDepartmentsIds.contains(departmentId))
-                    .collect(Collectors.toSet());
-
-            Set<Long> departmentsToConsiderForRemoval = currentDepartmentsIds.stream()
-                    .filter(departmentId -> !newDepartmentIds.contains(departmentId))
-                    .collect(Collectors.toSet());
-
-            Set<Long> departmentsToRemove = departmentsToConsiderForRemoval.stream()
-                    .filter(this::isNonMandatoryDepartment)
-                    .collect(Collectors.toSet());
-
-            for (Long departmentId: departmentsToAdd) {
-                Department department = departmentRepository.findById(departmentId)
-                        .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
-                employee.getDepartments().add(department);
-                department.getEmployees().add(employee);
-            }
-
-            for (Long departmentId: departmentsToRemove) {
-                Department department = departmentRepository.findById(departmentId)
-                        .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
-                employee.getDepartments().remove(department);
-                department.getEmployees().remove(employee);
-            }
-
+        if (updatedEmployee.getDepartments() == null) {
+            return employeeRepository.save(employee);
         }
+
+        Set<Long> currentDepartmentsIds = getDepartmentIds(employee.getDepartments());
+        Set<Long> newDepartmentIds = getDepartmentIds(updatedEmployee.getDepartments());
+
+        addDepartmentsToEmployee(employee, currentDepartmentsIds, newDepartmentIds);
+        removeDepartmentsFromEmployee(employee, currentDepartmentsIds, newDepartmentIds);
+
         return employeeRepository.save(employee);
     }
 
@@ -95,6 +67,39 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private Employee getEmployeeById(Long id) {
         return employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
+    }
+
+    private void addDepartmentsToEmployee(Employee employee, Set<Long> currentDepartmentsIds, Set<Long> newDepartmentIds) {
+        Set<Long> departmentsToAdd = newDepartmentIds.stream()
+                .filter(departmentId -> !currentDepartmentsIds.contains(departmentId))
+                .collect(Collectors.toSet());
+
+        for (Long deptId : departmentsToAdd) {
+            Department department = departmentRepository.findById(deptId)
+                    .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + deptId + " not found"));
+            employee.getDepartments().add(department);
+            department.getEmployees().add(employee);
+        }
+    }
+
+    private void removeDepartmentsFromEmployee(Employee employee, Set<Long> currentDepartmentsIds, Set<Long> newDepartmentIds) {
+        Set<Long> departmentsToRemove = currentDepartmentsIds.stream()
+                .filter(departmentId -> !newDepartmentIds.contains(departmentId))
+                .filter(this::isNonMandatoryDepartment)
+                .collect(Collectors.toSet());
+
+        for (Long deptId : departmentsToRemove) {
+            Department department = departmentRepository.findById(deptId)
+                    .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + deptId + " not found"));
+            employee.getDepartments().remove(department);
+            department.getEmployees().remove(employee);
+        }
+    }
+
+    private Set<Long> getDepartmentIds(Set<Department> departments) {
+        return departments.stream()
+                .map(Department::getId)
+                .collect(Collectors.toSet());
     }
 
     private boolean isNonMandatoryDepartment(Long departmentId) {
