@@ -40,14 +40,8 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public Department getDepartmentById(Long id) {
-        return departmentRepository.findById(id)
-                .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + id + " not found"));
-    }
-
-    @Override
-    public Department updateDepartment(Long id, Department updatedDepartment) {
-        Department department = getDepartmentById(id);
+    public Department updateDepartment(Department updatedDepartment) {
+        Department department = getDepartmentById(updatedDepartment.getId());
 
         if (department.isReadOnly() && updatedDepartment.isReadOnly()) {
             throw new ReadOnlyDepartmentException("Cannot update a department marked as read-only");
@@ -75,5 +69,10 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         employeeRepository.saveAll(employees);
         departmentRepository.delete(department);
+    }
+
+    private Department getDepartmentById(Long id) {
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + id + " not found"));
     }
 }

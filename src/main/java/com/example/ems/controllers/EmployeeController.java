@@ -29,31 +29,14 @@ public class EmployeeController {
         return employeeService.getAllEmployees();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Employee> getEmployee(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(employeeService.getEmployeeById(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
-        Employee updatedEmployee = employeeService.updateEmployee(id, employee);
+    @PutMapping
+    public ResponseEntity<Employee> updateEmployee(@RequestBody Employee employee) {
+        Employee updatedEmployee = employeeService.updateEmployee(employee);
         return ResponseEntity.ok(updatedEmployee);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{employeeId}/departments/{departmentId}")
-    public ResponseEntity<Void> addDepartment(@PathVariable Long employeeId, @PathVariable Long departmentId) {
-        employeeService.addDepartmentToEmployee(employeeId, departmentId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{employeeId}/departments/{departmentId}")
-    public ResponseEntity<Void> removeDepartment(@PathVariable Long employeeId, @PathVariable Long departmentId) {
-        employeeService.removeDepartmentFromEmployee(employeeId, departmentId);
         return ResponseEntity.noContent().build();
     }
 }

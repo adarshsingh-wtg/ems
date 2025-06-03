@@ -31,14 +31,9 @@ public class DepartmentController {
         return departmentService.getAllDepartments();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartment(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(departmentService.getDepartmentById(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
-        return ResponseEntity.status(HttpStatus.OK).body(departmentService.updateDepartment(id, department));
+    @PutMapping
+    public ResponseEntity<Department> updateDepartment(@RequestBody Department department) {
+        return ResponseEntity.status(HttpStatus.OK).body(departmentService.updateDepartment(department));
     }
 
     @DeleteMapping("/{id}")

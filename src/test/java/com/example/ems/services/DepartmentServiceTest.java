@@ -94,27 +94,9 @@ public class DepartmentServiceTest {
     }
 
     @Test
-    void testGetDepartmentById_success() {
-        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department1));
-
-        Department dept = departmentService.getDepartmentById(1L);
-        assertNotNull(dept);
-        assertEquals("Organisation", dept.getName());
-        verify(departmentRepository).findById(1L);
-    }
-
-    @Test
-    void testGetDepartmentById_NotFound_throwsException() {
-        when(departmentRepository.findById(10L)).thenReturn(Optional.empty());
-
-        assertThrows(DepartmentNotFoundException.class, () -> departmentService.getDepartmentById(10L));
-
-        verify(departmentRepository).findById(10L);
-    }
-
-    @Test
     void testUpdateDepartment_success() {
         Department updatedDepartment = new Department();
+        updatedDepartment.setId(2L);
         updatedDepartment.setName("Updated HR");
         updatedDepartment.setReadOnly(false);
         updatedDepartment.setMandatory(true);
@@ -123,7 +105,7 @@ public class DepartmentServiceTest {
         when(departmentRepository.existsByName("Updated HR")).thenReturn(false);
         when(departmentRepository.save(any(Department.class))).thenReturn(updatedDepartment);
 
-        Department result = departmentService.updateDepartment(2L, updatedDepartment);
+        Department result = departmentService.updateDepartment(updatedDepartment);
 
         assertNotNull(result);
         assertEquals("Updated HR", result.getName());
@@ -137,12 +119,13 @@ public class DepartmentServiceTest {
     @Test
     void testUpdateDepartment_duplicateName_throwsException() {
         Department updatedDepartment = new Department();
+        updatedDepartment.setId(2L);
         updatedDepartment.setName("Updated HR");
 
         when(departmentRepository.findById(2L)).thenReturn(Optional.of(department2));
         when(departmentRepository.existsByName("Updated HR")).thenReturn(true);
 
-        assertThrows(DuplicateDepartmentNameException.class, () -> departmentService.updateDepartment(2L, updatedDepartment));
+        assertThrows(DuplicateDepartmentNameException.class, () -> departmentService.updateDepartment(updatedDepartment));
 
         verify(departmentRepository).findById(2L);
         verify(departmentRepository).existsByName("Updated HR");
@@ -152,12 +135,13 @@ public class DepartmentServiceTest {
     @Test
     void testUpdateDepartment_ReadOnly_throwsException() {
         Department updatedDepartment = new Department();
+        updatedDepartment.setId(1L);
         updatedDepartment.setName("Updated Organisation");
         updatedDepartment.setReadOnly(true);
 
         when(departmentRepository.findById(1L)).thenReturn(Optional.of(department1));
 
-        assertThrows(ReadOnlyDepartmentException.class, () -> departmentService.updateDepartment(1L, updatedDepartment));
+        assertThrows(ReadOnlyDepartmentException.class, () -> departmentService.updateDepartment(updatedDepartment));
 
         verify(departmentRepository).findById(1L);
         verify(departmentRepository, never()).save(any());

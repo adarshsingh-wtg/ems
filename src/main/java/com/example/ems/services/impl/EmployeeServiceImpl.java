@@ -7,11 +7,12 @@ import com.example.ems.models.Employee;
 import com.example.ems.repos.DepartmentRepository;
 import com.example.ems.repos.EmployeeRepository;
 import com.example.ems.services.EmployeeService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -28,8 +29,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee createEmployee(Employee employee) {
         List<Department> mandatoryDepartments = departmentRepository.findByMandatoryTrue();
-        mandatoryDepartments.forEach(department -> {employee.getDepartments().add(department);});
-
+        employee.getDepartments().addAll(mandatoryDepartments);
         return employeeRepository.save(employee);
     }
 
@@ -39,44 +39,67 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Employee getEmployeeById(Long id) {
-        return employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
-    }
-
-    @Override
-    public Employee updateEmployee(Long id, Employee updatedEmployee) {
-        Employee employee = getEmployeeById(id);
+    public Employee updateEmployee(Employee updatedEmployee) {
+        Employee employee = getEmployeeById(updatedEmployee.getId());
         employee.setName(updatedEmployee.getName());
+
+        if(updatedEmployee.getDepartments() != null) {
+            Set<Long> currentDepartmentsIds = employee.getDepartments()
+                    .stream()
+                    .map(Department::getId)
+                    .collect(Collectors.toSet());
+
+            Set<Long> newDepartmentIds = updatedEmployee.getDepartments()
+                    .stream()
+                    .map(Department::getId)
+                    .collect(Collectors.toSet());
+
+            Set<Long> departmentsToAdd = newDepartmentIds.stream()
+                    .filter(departmentId -> !currentDepartmentsIds.contains(departmentId))
+                    .collect(Collectors.toSet());
+
+            Set<Long> departmentsToConsiderForRemoval = currentDepartmentsIds.stream()
+                    .filter(departmentId -> !newDepartmentIds.contains(departmentId))
+                    .collect(Collectors.toSet());
+
+            Set<Long> departmentsToRemove = departmentsToConsiderForRemoval.stream()
+                    .filter(this::isNonMandatoryDepartment)
+                    .collect(Collectors.toSet());
+
+            for (Long departmentId: departmentsToAdd) {
+                Department department = departmentRepository.findById(departmentId)
+                        .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
+                employee.getDepartments().add(department);
+                department.getEmployees().add(employee);
+            }
+
+            for (Long departmentId: departmentsToRemove) {
+                Department department = departmentRepository.findById(departmentId)
+                        .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
+                employee.getDepartments().remove(department);
+                department.getEmployees().remove(employee);
+            }
+
+        }
         return employeeRepository.save(employee);
     }
 
     @Override
     public void deleteEmployee(Long id) {
         Employee employee = getEmployeeById(id);
+        if (employee.getDepartments().stream().anyMatch(Department::isMandatory)) {
+            throw new IllegalArgumentException("Cannot delete employee present in Mandatory Department");
+        }
         employeeRepository.delete(employee);
     }
 
-    @Override
-    public void addDepartmentToEmployee(Long employeeId, Long departmentId) {
-        Employee employee = getEmployeeById(employeeId);
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
-
-        employee.getDepartments().add(department);
-        department.getEmployees().add(employee);
-
-        employeeRepository.save(employee);
+    private Employee getEmployeeById(Long id) {
+        return employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
     }
 
-    @Override
-    public void removeDepartmentFromEmployee(Long employeeId, Long departmentId) {
-        Employee employee = getEmployeeById(employeeId);
-        Department department = departmentRepository.findById(departmentId)
+    private boolean isNonMandatoryDepartment(Long departmentId) {
+        Department d = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new DepartmentNotFoundException("Department with ID " + departmentId + " not found"));
-
-        employee.getDepartments().remove(department);
-        department.getEmployees().remove(employee);
-
-        employeeRepository.save(employee);
+        return !d.isMandatory();
     }
 }
