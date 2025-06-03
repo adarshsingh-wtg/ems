@@ -11,13 +11,11 @@ import java.util.*;
 @Entity
 @Table(name = "DEPARTMENT")
 @ToString(exclude = "employees")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DEPARTMENT_SEQ")
     @SequenceGenerator(name = "DEPARTMENT_SEQ", sequenceName = "DEPARTMENT_SEQ", allocationSize = 1)
-    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false, unique = true)
